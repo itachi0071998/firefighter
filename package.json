@@ -1,0 +1,36 @@
+{
+  "name": "firefighter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Firefighter - AI incident response agent. Mitigate first, remediate second.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "seed": "node --import tsx src/cli.ts seed",
+    "dev": "node --import tsx --watch src/server/main.ts",
+    "start": "node --import tsx src/server/main.ts",
+    "demo": "node --import tsx src/cli.ts demo",
+    "run-incident": "node --import tsx src/cli.ts run",
+    "evals": "node --import tsx src/evals/run.ts",
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "reset": "node --import tsx src/cli.ts reset",
+    "status": "node --import tsx src/cli.ts status",
+    "sentry": "node --import tsx src/cli.ts sentry",
+    "github:setup": "node --import tsx src/cli.ts github-setup",
+    "bisect": "node --import tsx src/cli.ts bisect",
+    "preflight": "node --import tsx src/cli.ts preflight",
+    "sentry:bootstrap": "node --import tsx src/cli.ts sentry-bootstrap"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

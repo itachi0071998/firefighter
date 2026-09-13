@@ -1,0 +1,11 @@
+node_modules/
+.env*
+!.env.example
+*.log
+data/
+demo-repo/
+demo-repo-sentry/
+.firefighter/
+dist/
+.DS_Store
+eval-results/
