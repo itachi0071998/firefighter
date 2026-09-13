@@ -5,6 +5,14 @@ opens the revert while you're still reading the alert.**
 
 ---
 
+## Demo
+
+https://github.com/itachi0071998/firefighter/tree/main/docs — a 90-second screen recording of a
+real run: the Sentry alert arrives, the dashboard fills in live, bisection proves the culprit, and
+the revert PR, Jira ticket and Slack update appear. No narration needed; the timeline is the story.
+
+---
+
 ## The problem
 
 It's 3am. Checkout is throwing 500s. Twelve things shipped today and one of them did this.
@@ -62,6 +70,65 @@ CULPRIT PROVEN: PR #222   ·   2 candidates probed in 537ms
 ```
 
 **The scoring heuristic would have reverted the wrong PR.** That's the whole argument.
+
+## The flow, end to end
+
+```
+   ┌─────────────┐
+   │   SENTRY    │  production throws. an alert fires.
+   │   (alert)   │  TypeError: Cannot read properties of null (reading 'tier')
+   └──────┬──────┘
+          │  error · stack trace · the request that triggered it
+          ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │  1. INGEST + COLLECT                                        │
+   │     read the incident, then the last 30 commits, the merged │
+   │     PRs and their diffs, and the deploy timeline            │
+   └──────┬──────────────────────────────────────────────────────┘
+          ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │  2. RANK  (a hypothesis, not an answer)                     │
+   │     score each change on stack-trace overlap, deploy timing │
+   │     and symbol match                                        │
+   │        58%  PR #211   ← ranked first, and WRONG             │
+   │        33%  PR #222                                         │
+   └──────┬──────────────────────────────────────────────────────┘
+          ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │  3. BISECT  ★ the part that makes this real                 │
+   │     replay the production request at each candidate and at  │
+   │     its parent, in throwaway git worktrees:                 │
+   │                                                             │
+   │        PR #211  doesn't reproduce here      → ruled out     │
+   │        PR #222  parent clean, change FAILS  → ✓ PROVEN      │
+   │                                                             │
+   │     absent before, present after ⇒ this commit caused it    │
+   └──────┬──────────────────────────────────────────────────────┘
+          ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │  4. MITIGATE                                                │
+   │     file the ticket · cut a branch · git revert the proven   │
+   │     commit · run the test suite ON the revert branch         │
+   └──────┬──────────────────────────────────────────────────────┘
+          ▼
+   ┌──────────────┬──────────────┬──────────────┬───────────────┐
+   │    JIRA      │   GITHUB     │    SLACK     │   DASHBOARD   │
+   │  incident    │  revert PR   │  "Cause      │  live step    │
+   │  ticket      │  (+ draft    │   (proven)"  │  timeline +   │
+   │  created     │   fix PR in  │   posted     │  the proof    │
+   │              │   full mode) │              │               │
+   └──────────────┴──────┬───────┴──────────────┴───────────────┘
+                         ▼
+                  🛑 STOPS HERE
+          a human reviews and merges. Firefighter
+          never merges and never deploys.
+```
+
+Every step above is persisted, so a crash resumes instead of restarting, and every external write
+goes through an idempotency ledger — re-run it as many times as you like and you still get exactly
+one ticket, one revert PR and one Slack message.
+
+---
 
 ## It plugs into what you already run
 
