@@ -7,9 +7,12 @@ opens the revert while you're still reading the alert.**
 
 ## Demo
 
-https://github.com/itachi0071998/firefighter/tree/main/docs — a 90-second screen recording of a
-real run: the Sentry alert arrives, the dashboard fills in live, bisection proves the culprit, and
-the revert PR, Jira ticket and Slack update appear. No narration needed; the timeline is the story.
+**[▶ Watch the run (70s, no audio)](docs/firefighter-demo.mp4)**
+
+One unbroken take against live services. A Sentry alert arrives; the dashboard fills in step by
+step; bisection proves which commit caused it — overturning the ranking, which had an innocent PR
+first — and the revert PR, the Jira ticket and the Slack update appear as it goes. No narration:
+the timeline is the story.
 
 ---
 
