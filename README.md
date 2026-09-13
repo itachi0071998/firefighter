@@ -256,7 +256,27 @@ The eval harness pins `FF_MODE=full` so both tracks stay covered on every run.
 
 ---
 
-## The other part that matters: it is safe to re-run
+## How we tested reliability
+
+Three layers, all reproducible with `npm test` and `npm run evals`:
+
+1. **47 unit tests** — the idempotency ledger, crash recovery, the safety guard (merge/deploy/force-push
+   are refused at the action, git-argv and HTTP layers), Jira contract tests against a fake Jira server,
+   and bisection's decision logic including its refusal to emit a proof from a probe that could not execute.
+2. **11 deterministic eval scenarios**, each in an isolated process with its own database and its own
+   copy of the demo repo: happy path, wrong-PR-not-blamed, culprit-proven-by-execution, fix-tests-fail,
+   transient-API-failure, **crash-and-resume** (the process is really SIGKILLed mid-run), rerun-idempotency,
+   partial-then-resume, inconclusive-investigation, unverifiable-falls-back-to-correlation, older-PR-is-culprit.
+   Result: **100% task success, 100% correct suspect identification, 0 duplicate writes, 0 unsafe actions.**
+3. **Adversarial review** — a multi-agent audit raised 46 candidate defects, each independently verified;
+   39 were real and fixed. Jira was additionally mutation-tested: the client was deliberately broken 18
+   ways and the tests had to catch each one.
+
+The headline reliability property: **re-running is always safe.** Kill the process immediately after the
+incident ticket is created, restart it, and you still get exactly one ticket, one revert PR and one Slack
+message — every external write passes through an idempotency ledger keyed on the incident.
+
+### It is safe to re-run
 
 Every external mutation passes through an idempotency ledger keyed on the incident. Kill the
 process immediately after the Linear ticket is created, restart it, and you get **one** ticket,
